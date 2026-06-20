@@ -1,42 +1,29 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
-# ✅ FIX: allow frontend to connect
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ---------- Serve Frontend ----------
+@app.get("/", response_class=HTMLResponse)
+def home():
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
+# ---------- Request Model ----------
 class Request(BaseModel):
     topic: str
 
-def generate_idea(topic):
+# ---------- AI Logic ----------
+def generate_idea(topic: str):
     return {
-        "input": topic,
-
         "startup_idea": f"AI-powered assistant for {topic}",
-
         "problem": f"Students struggle to gain real-world experience in {topic}",
-
         "solution": f"An AI mentor that guides projects, explains concepts, and helps build real apps in {topic}",
-
-        "roadmap": [
-            "Learn fundamentals",
-            "Build mini projects",
-            "Deploy real application"
-        ],
-
-        "monetization": "Freemium + campus subscriptions",
-
-        "0g_memory": f"stored:{hash(topic)}"
+        "monetization": "Freemium + campus subscriptions"
     }
 
+# ---------- API Endpoint ----------
 @app.post("/generate")
 def generate(req: Request):
     idea = generate_idea(req.topic)
