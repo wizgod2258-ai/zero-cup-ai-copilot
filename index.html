@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Copilot</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial;
+}
+
+body {
+    background: #0B0B0F;
+    color: white;
+    height: 100vh;
+    display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    background: rgba(255,255,255,0.03);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.logo {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.btn {
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: linear-gradient(90deg,#6a11cb,#2575fc);
+    color: white;
+    width: 100%;
+}
+
+.quick {
+    margin-top: 15px;
+}
+
+.quick div {
+    padding: 8px;
+    margin: 5px 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.history {
+    margin-top: 20px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.profile {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+/* MAIN */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* CHAT */
+.chat {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.msg {
+    max-width: 70%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+
+.user {
+    background: #2575fc;
+    margin-left: auto;
+}
+
+.ai {
+    background: rgba(255,255,255,0.07);
+}
+
+/* INPUT */
+.inputBox {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.03);
+}
+
+input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+
+button {
+    margin-left: 10px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg,#6a11cb,#2575fc);
+    color: white;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+    <div>
+        <div class="logo">🚀 AI Copilot</div>
+
+        <button class="btn" onclick="newChat()">+ New Chat</button>
+
+        <div class="quick">
+            <div onclick="quick('Generate startup ideas')">💡 Generate ideas</div>
+            <div onclick="quick('Write code for AI app')">💻 Write code</div>
+            <div onclick="quick('Analyze documents')">📄 Analyze documents</div>
+            <div onclick="quick('Create strategy')">📊 Create strategy</div>
+        </div>
+
+        <div class="history" id="history">
+            <p>Chat History</p>
+        </div>
+    </div>
+
+    <div class="profile">
+        👤 User Profile
+    </div>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <div class="chat" id="chat"></div>
+
+    <div class="inputBox">
+        <input id="topic" placeholder="Ask anything..." />
+        <button onclick="generate()">Send</button>
+    </div>
+
+</div>
+
+<script>
+
+let historyList = [];
+
+function newChat() {
+    document.getElementById("chat").innerHTML = "";
+}
+
+function quick(text) {
+    document.getElementById("topic").value = text;
+    generate();
+}
+
+function addHistory(text) {
+    historyList.push(text);
+    document.getElementById("history").innerHTML =
+        "<p>Chat History</p>" +
+        historyList.map(h => `<p>• ${h}</p>`).join("");
+}
+
+async function generate() {
+
+    let topic = document.getElementById("topic").value;
+    if (!topic) return;
+
+    let chat = document.getElementById("chat");
+
+    // user message
+    chat.innerHTML += `<div class='msg user'>${topic}</div>`;
+
+    addHistory(topic);
+
+    document.getElementById("topic").value = "";
+
+    try {
+        let res = await fetch("http://127.0.0.1:8000/generate", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ topic })
+        });
+
+        let data = await res.json();
+
+        let aiText = `
+<b>Startup Idea:</b> ${data.idea.startup_idea}<br><br>
+<b>Problem:</b> ${data.idea.problem}<br><br>
+<b>Solution:</b> ${data.idea.solution}<br><br>
+<b>Monetization:</b> ${data.idea.monetization}
+        `;
+
+        chat.innerHTML += `<div class='msg ai'>${aiText}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+
+    } catch (err) {
+        chat.innerHTML += `<div class='msg ai'>Error: backend not connected</div>`;
+    }
+}
+
+</script>
+
+</body>
+</html>
