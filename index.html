@@ -1,19 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AI Copilot</title>
+<meta charset="UTF-8">
+<title>AI Copilot Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
+    font-family: system-ui;
     background: #0B0B0F;
     color: white;
-}
-
-.container {
     display: flex;
     height: 100vh;
 }
@@ -21,196 +18,244 @@ body {
 /* SIDEBAR */
 .sidebar {
     width: 260px;
-    background: rgba(255,255,255,0.05);
-    padding: 15px;
+    background: #111218;
     display: flex;
     flex-direction: column;
+    padding: 15px;
 }
 
 .logo {
     font-size: 18px;
-    margin-bottom: 20px;
     font-weight: bold;
+    color: #7c5cff;
+    margin-bottom: 20px;
 }
 
-.btn {
+.sidebtn {
+    background: #1a1b22;
+    border: none;
+    color: white;
     padding: 10px;
     margin: 5px 0;
-    background: rgba(255,255,255,0.08);
     border-radius: 8px;
     cursor: pointer;
+    text-align: left;
 }
 
-.btn:hover {
-    background: rgba(255,255,255,0.15);
+.sidebtn:hover {
+    background: #2a2b36;
 }
 
-/* MAIN */
-.main {
+.history {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+/* CHAT AREA */
+.chat {
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.header {
-    padding: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.chat {
+.messages {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
 }
 
 .msg {
-    padding: 12px;
-    border-radius: 10px;
     max-width: 70%;
-    white-space: pre-wrap;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 12px;
+    white-space: pre-line;
 }
 
 .user {
-    background: #3b82f6;
-    align-self: flex-end;
+    background: #2b2d3a;
+    margin-left: auto;
 }
 
-.bot {
-    background: rgba(255,255,255,0.1);
-    align-self: flex-start;
+.ai {
+    background: #1a1b22;
+    border: 1px solid #2d2f3a;
 }
 
 /* INPUT */
-.input-area {
+.inputbox {
     display: flex;
-    padding: 12px;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 15px;
+    background: #111218;
+    gap: 10px;
 }
 
 input {
     flex: 1;
-    padding: 10px;
-    border-radius: 8px;
+    padding: 12px;
+    border-radius: 10px;
     border: none;
-    outline: none;
+    background: #1a1b22;
+    color: white;
 }
 
 button {
-    margin-left: 10px;
-    padding: 10px 14px;
-    border-radius: 8px;
+    padding: 12px 18px;
     border: none;
-    background: #8b5cf6;
+    border-radius: 10px;
+    background: linear-gradient(90deg,#7c5cff,#4dd0e1);
     color: white;
     cursor: pointer;
 }
 
-button:hover {
-    background: #7c3aed;
+/* LOADING DOTS */
+.dots::after {
+    content: '...';
+    animation: dots 1s infinite;
+}
+
+@keyframes dots {
+    0% {content: '.';}
+    33% {content: '..';}
+    66% {content: '...';}
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
 <!-- SIDEBAR -->
 <div class="sidebar">
-    <div class="logo">🚀 AI Copilot</div>
+    <div class="logo">🚀 AI Copilot Pro</div>
 
-    <div class="btn" onclick="newChat()">New Chat</div>
-    <div class="btn" onclick="quick('AI Ideas')">AI Ideas</div>
-    <div class="btn" onclick="quick('Startup Plans')">Startup Plans</div>
+    <button class="sidebtn" onclick="newChat()">+ New Chat</button>
+    <button class="sidebtn" onclick="quick('AI ideas')">AI Ideas</button>
+    <button class="sidebtn" onclick="quick('Startup plan')">Startup Plan</button>
+    <button class="sidebtn" onclick="quick('Pitch generator')">Pitch Generator</button>
+
+    <div class="history" id="history"></div>
 </div>
 
-<!-- MAIN -->
-<div class="main">
+<!-- CHAT -->
+<div class="chat">
 
-<div class="header">
-    AI Startup Generator
-</div>
+    <div class="messages" id="messages">
+        <div class="msg ai">Welcome to AI Copilot Pro 🚀</div>
+    </div>
 
-<div id="chat" class="chat"></div>
-
-<div class="input-area">
-    <input id="input" placeholder="Ask anything..." />
-    <button onclick="send()">Send</button>
-</div>
-
-</div>
+    <div class="inputbox">
+        <input id="input" placeholder="Ask anything..." />
+        <button onclick="generate()">Send</button>
+    </div>
 
 </div>
 
 <script>
-const chat = document.getElementById("chat");
 
-function add(text, type) {
+function addMsg(text, cls) {
     const div = document.createElement("div");
-    div.className = "msg " + type;
+    div.className = "msg " + cls;
     div.innerText = text;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
+    document.getElementById("messages").appendChild(div);
+    div.scrollIntoView();
+    return div;
 }
 
 function newChat() {
-    chat.innerHTML = "";
-    add("New chat started 🚀", "bot");
+    document.getElementById("messages").innerHTML =
+        `<div class="msg ai">New chat started 🚀</div>`;
 }
 
-function quick(topic) {
-    document.getElementById("input").value = topic;
-    send();
+function quick(text) {
+    document.getElementById("input").value = text;
+    generate();
 }
 
-async function send() {
+function saveHistory(text) {
+    const h = document.createElement("div");
+    h.className = "sidebtn";
+    h.innerText = text;
+    document.getElementById("history").prepend(h);
+}
+
+/* STREAM EFFECT */
+function typeText(element, text, speed=15) {
+    let i = 0;
+    element.innerText = "";
+    let timer = setInterval(() => {
+        element.innerText += text[i];
+        i++;
+        if (i >= text.length) clearInterval(timer);
+    }, speed);
+}
+
+async function generate() {
     const input = document.getElementById("input");
-    const text = input.value.trim();
-    if (!text) return;
+    const topic = input.value.trim();
+    if (!topic) return;
 
-    add(text, "user");
+    addMsg(topic, "user");
+    saveHistory(topic);
     input.value = "";
 
-    const loading = document.createElement("div");
-    loading.className = "msg bot";
-    loading.innerText = "Thinking...";
-    chat.appendChild(loading);
+    const loading = addMsg("Thinking", "ai");
+    loading.classList.add("dots");
 
     try {
-        const res = await fetch("/generate", {
+        const res = await fetch("http://127.0.0.1:8000/generate", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({topic:text})
+            body: JSON.stringify({ topic })
         });
 
         const data = await res.json();
-        loading.remove();
-
-        const idea = data.idea;
+        const pitch = data.idea.pitch;
 
         const output =
-`🚀 Startup Idea
-${idea.startup_idea}
+`🚀 STARTUP IDEA
+${data.idea.startup_idea}
 
-❗ Problem
-${idea.problem}
+❗ PROBLEM
+${data.idea.problem}
 
-💡 Solution
-${idea.solution}
+💡 SOLUTION
+${data.idea.solution}
 
-💰 Monetization
-${idea.monetization}`;
+📊 PITCH
 
-        add(output, "bot");
+One-liner:
+${pitch.one_liner}
+
+Problem:
+${pitch.problem_statement}
+
+Solution:
+${pitch.solution_statement}
+
+Market:
+${pitch.market}
+
+Business Model:
+${pitch.business_model}
+
+Why Now:
+${pitch.why_now}
+
+MVP:
+- ${pitch.mvp.join("\n- ")}
+
+💰 Monetization:
+${data.idea.monetization}`;
+
+        loading.classList.remove("dots");
+        typeText(loading, output);
 
     } catch (e) {
-        loading.remove();
-        add("Backend error", "bot");
+        loading.innerText = "Backend error ❌";
     }
 }
+
 </script>
 
 </body>
