@@ -7,21 +7,15 @@ async function generate() {
     saveHistory(topic);
     input.value = "";
 
-    const loading = addMsg("Thinking...", "ai");
+    const loading = addMsg("Thinking", "ai");
     loading.classList.add("dots");
 
     try {
         const res = await fetch("/generate", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: {"Content-Type":"application/json"},
             body: JSON.stringify({ topic })
         });
-
-        if (!res.ok) {
-            throw new Error("Server error");
-        }
 
         const data = await res.json();
         const pitch = data.idea.pitch;
@@ -63,12 +57,9 @@ MVP:
 ${data.idea.monetization}`;
 
         loading.classList.remove("dots");
-        loading.innerText = "";
         typeText(loading, output);
 
-    } catch (err) {
-        loading.classList.remove("dots");
+    } catch (e) {
         loading.innerText = "Backend error ❌";
-        console.error(err);
     }
 }
