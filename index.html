@@ -1,195 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>AI Copilot Pro</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body {
-    margin: 0;
-    font-family: system-ui;
-    background: #0B0B0F;
-    color: white;
-    display: flex;
-    height: 100vh;
-}
-
-/* SIDEBAR */
-.sidebar {
-    width: 260px;
-    background: #111218;
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-}
-
-.logo {
-    font-size: 18px;
-    font-weight: bold;
-    color: #7c5cff;
-    margin-bottom: 20px;
-}
-
-.sidebtn {
-    background: #1a1b22;
-    border: none;
-    color: white;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: left;
-}
-
-.sidebtn:hover {
-    background: #2a2b36;
-}
-
-.history {
-    flex: 1;
-    overflow-y: auto;
-    margin-top: 10px;
-}
-
-/* CHAT AREA */
-.chat {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.messages {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.msg {
-    max-width: 70%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 12px;
-    white-space: pre-line;
-}
-
-.user {
-    background: #2b2d3a;
-    margin-left: auto;
-}
-
-.ai {
-    background: #1a1b22;
-    border: 1px solid #2d2f3a;
-}
-
-/* INPUT */
-.inputbox {
-    display: flex;
-    padding: 15px;
-    background: #111218;
-    gap: 10px;
-}
-
-input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    background: #1a1b22;
-    color: white;
-}
-
-button {
-    padding: 12px 18px;
-    border: none;
-    border-radius: 10px;
-    background: linear-gradient(90deg,#7c5cff,#4dd0e1);
-    color: white;
-    cursor: pointer;
-}
-
-/* LOADING DOTS */
-.dots::after {
-    content: '...';
-    animation: dots 1s infinite;
-}
-
-@keyframes dots {
-    0% {content: '.';}
-    33% {content: '..';}
-    66% {content: '...';}
-}
-</style>
-</head>
-
-<body>
-
-<!-- SIDEBAR -->
-<div class="sidebar">
-    <div class="logo">🚀 AI Copilot Pro</div>
-
-    <button class="sidebtn" onclick="newChat()">+ New Chat</button>
-    <button class="sidebtn" onclick="quick('AI ideas')">AI Ideas</button>
-    <button class="sidebtn" onclick="quick('Startup plan')">Startup Plan</button>
-    <button class="sidebtn" onclick="quick('Pitch generator')">Pitch Generator</button>
-
-    <div class="history" id="history"></div>
-</div>
-
-<!-- CHAT -->
-<div class="chat">
-
-    <div class="messages" id="messages">
-        <div class="msg ai">Welcome to AI Copilot Pro 🚀</div>
-    </div>
-
-    <div class="inputbox">
-        <input id="input" placeholder="Ask anything..." />
-        <button onclick="generate()">Send</button>
-    </div>
-
-</div>
-
-<script>
-
-function addMsg(text, cls) {
-    const div = document.createElement("div");
-    div.className = "msg " + cls;
-    div.innerText = text;
-    document.getElementById("messages").appendChild(div);
-    div.scrollIntoView();
-    return div;
-}
-
-function newChat() {
-    document.getElementById("messages").innerHTML =
-        `<div class="msg ai">New chat started 🚀</div>`;
-}
-
-function quick(text) {
-    document.getElementById("input").value = text;
-    generate();
-}
-
-function saveHistory(text) {
-    const h = document.createElement("div");
-    h.className = "sidebtn";
-    h.innerText = text;
-    document.getElementById("history").prepend(h);
-}
-
-/* STREAM EFFECT */
-function typeText(element, text, speed=15) {
-    let i = 0;
-    element.innerText = "";
-    let timer = setInterval(() => {
-        element.innerText += text[i];
-        i++;
-        if (i >= text.length) clearInterval(timer);
-    }, speed);
-}
-
 async function generate() {
     const input = document.getElementById("input");
     const topic = input.value.trim();
@@ -199,15 +7,21 @@ async function generate() {
     saveHistory(topic);
     input.value = "";
 
-    const loading = addMsg("Thinking", "ai");
+    const loading = addMsg("Thinking...", "ai");
     loading.classList.add("dots");
 
     try {
-        const res = await fetch("http://127.0.0.1:8000/generate", {
+        const res = await fetch("/generate", {
             method: "POST",
-            headers: {"Content-Type":"application/json"},
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({ topic })
         });
+
+        if (!res.ok) {
+            throw new Error("Server error");
+        }
 
         const data = await res.json();
         const pitch = data.idea.pitch;
@@ -249,14 +63,12 @@ MVP:
 ${data.idea.monetization}`;
 
         loading.classList.remove("dots");
+        loading.innerText = "";
         typeText(loading, output);
 
-    } catch (e) {
+    } catch (err) {
+        loading.classList.remove("dots");
         loading.innerText = "Backend error ❌";
+        console.error(err);
     }
 }
-
-</script>
-
-</body>
-</html>
