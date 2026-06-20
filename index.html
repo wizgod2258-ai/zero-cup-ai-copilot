@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Zero Cup AI Copilot</title>
+<title>AI Copilot</title>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     background: #0B0B0F;
     color: white;
 }
@@ -18,34 +18,34 @@ body {
     height: 100vh;
 }
 
-/* Sidebar */
+/* SIDEBAR */
 .sidebar {
     width: 260px;
     background: rgba(255,255,255,0.05);
-    padding: 20px;
+    padding: 15px;
     display: flex;
     flex-direction: column;
 }
 
-.sidebar h2 {
+.logo {
     font-size: 18px;
     margin-bottom: 20px;
+    font-weight: bold;
 }
 
-.chat-list {
-    flex: 1;
-    overflow-y: auto;
-}
-
-.chat-item {
+.btn {
     padding: 10px;
-    margin-bottom: 8px;
-    background: rgba(255,255,255,0.05);
+    margin: 5px 0;
+    background: rgba(255,255,255,0.08);
     border-radius: 8px;
     cursor: pointer;
 }
 
-/* Main */
+.btn:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+/* MAIN */
 .main {
     flex: 1;
     display: flex;
@@ -53,11 +53,11 @@ body {
 }
 
 .header {
-    padding: 20px;
+    padding: 15px;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.chat-box {
+.chat {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
@@ -66,7 +66,6 @@ body {
     gap: 10px;
 }
 
-/* Messages */
 .msg {
     padding: 12px;
     border-radius: 10px;
@@ -84,16 +83,16 @@ body {
     align-self: flex-start;
 }
 
-/* Input */
+/* INPUT */
 .input-area {
     display: flex;
-    padding: 15px;
+    padding: 12px;
     border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 input {
     flex: 1;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     border: none;
     outline: none;
@@ -101,9 +100,9 @@ input {
 
 button {
     margin-left: 10px;
-    padding: 12px 16px;
-    border: none;
+    padding: 10px 14px;
     border-radius: 8px;
+    border: none;
     background: #8b5cf6;
     color: white;
     cursor: pointer;
@@ -112,11 +111,6 @@ button {
 button:hover {
     background: #7c3aed;
 }
-
-.loading {
-    opacity: 0.7;
-    font-style: italic;
-}
 </style>
 </head>
 
@@ -124,39 +118,37 @@ button:hover {
 
 <div class="container">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2>🚀 AI Copilot</h2>
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="logo">🚀 AI Copilot</div>
 
-        <div class="chat-list">
-            <div class="chat-item">New Chat</div>
-            <div class="chat-item">AI Ideas</div>
-            <div class="chat-item">Startup Plans</div>
-        </div>
-    </div>
+    <div class="btn" onclick="newChat()">New Chat</div>
+    <div class="btn" onclick="quick('AI Ideas')">AI Ideas</div>
+    <div class="btn" onclick="quick('Startup Plans')">Startup Plans</div>
+</div>
 
-    <!-- MAIN -->
-    <div class="main">
+<!-- MAIN -->
+<div class="main">
 
-        <div class="header">
-            <h3>Welcome to AI Startup Generator</h3>
-        </div>
+<div class="header">
+    AI Startup Generator
+</div>
 
-        <div id="chat" class="chat-box"></div>
+<div id="chat" class="chat"></div>
 
-        <div class="input-area">
-            <input id="input" placeholder="Ask anything..." />
-            <button onclick="send()">Send</button>
-        </div>
+<div class="input-area">
+    <input id="input" placeholder="Ask anything..." />
+    <button onclick="send()">Send</button>
+</div>
 
-    </div>
+</div>
 
 </div>
 
 <script>
 const chat = document.getElementById("chat");
 
-function addMessage(text, type) {
+function add(text, type) {
     const div = document.createElement("div");
     div.className = "msg " + type;
     div.innerText = text;
@@ -164,33 +156,42 @@ function addMessage(text, type) {
     chat.scrollTop = chat.scrollHeight;
 }
 
+function newChat() {
+    chat.innerHTML = "";
+    add("New chat started 🚀", "bot");
+}
+
+function quick(topic) {
+    document.getElementById("input").value = topic;
+    send();
+}
+
 async function send() {
     const input = document.getElementById("input");
     const text = input.value.trim();
     if (!text) return;
 
-    addMessage(text, "user");
+    add(text, "user");
     input.value = "";
 
     const loading = document.createElement("div");
-    loading.className = "msg bot loading";
-    loading.innerText = "Generating startup idea...";
+    loading.className = "msg bot";
+    loading.innerText = "Thinking...";
     chat.appendChild(loading);
 
     try {
         const res = await fetch("/generate", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ topic: text })
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({topic:text})
         });
 
         const data = await res.json();
-
         loading.remove();
 
         const idea = data.idea;
 
-        const formatted =
+        const output =
 `🚀 Startup Idea
 ${idea.startup_idea}
 
@@ -203,11 +204,11 @@ ${idea.solution}
 💰 Monetization
 ${idea.monetization}`;
 
-        addMessage(formatted, "bot");
+        add(output, "bot");
 
-    } catch (err) {
+    } catch (e) {
         loading.remove();
-        addMessage("Error connecting to backend", "bot");
+        add("Backend error", "bot");
     }
 }
 </script>
