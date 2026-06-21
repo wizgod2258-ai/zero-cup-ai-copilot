@@ -1,69 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StudyVault AI</title>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 700px;
+            margin: 50px auto;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .box {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<h1>📚 StudyVault AI</h1>
+
+<p>Write anything → Save permanently on 0G Storage</p>
+
+<textarea id="note" placeholder="Type your study notes..."></textarea>
+<br>
+
+<button onclick="saveNote()">Save to 0G 🚀</button>
+
+<div class="box" id="output"></div>
+
 <script>
-async function generate() {
-    const input = document.getElementById("input");
-    const topic = input.value.trim();
-    if (!topic) return;
+async function saveNote() {
+    const text = document.getElementById("note").value;
+    const output = document.getElementById("output");
 
-    addMsg(topic, "user");
-    saveHistory(topic);
-    input.value = "";
+    output.innerText = "Uploading to 0G... ⏳";
 
-    const loading = addMsg("Thinking...", "ai");
-    loading.classList.add("dots");
+    const res = await fetch("/save", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ text })
+    });
 
-    try {
-        const res = await fetch("/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ topic })
-        });
+    const data = await res.json();
 
-        const data = await res.json();
-        const pitch = data.idea.pitch;
+    if (data.success) {
+        output.innerText =
+`✅ SUCCESS!
 
-        const output =
-`🚀 STARTUP IDEA
-${data.idea.startup_idea}
+📦 Root Hash:
+${data.rootHash}
 
-❗ PROBLEM
-${data.idea.problem}
+🔗 TX:
+${data.tx.txHash || "pending"}
 
-💡 SOLUTION
-${data.idea.solution}
-
-📊 PITCH
-
-One-liner:
-${pitch.one_liner}
-
-Problem:
-${pitch.problem_statement}
-
-Solution:
-${pitch.solution_statement}
-
-Market:
-${pitch.market}
-
-Business Model:
-${pitch.business_model}
-
-Why Now:
-${pitch.why_now}
-
-MVP:
-- ${pitch.mvp.join("\n- ")}
-
-💰 Monetization:
-${data.idea.monetization}`;
-
-        loading.classList.remove("dots");
-        typeText(loading, output);
-
-    } catch (err) {
-        loading.classList.remove("dots");
-        loading.innerText = "Backend error ❌";
-        console.error(err);
+📊 Sequence:
+${data.tx.txSeq || "N/A"}`;
+    } else {
+        output.innerText = "❌ Error: " + data.error;
     }
 }
 </script>
+
+</body>
+</html>

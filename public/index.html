@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>VaultOS AI</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+
+body {
+    margin: 0;
+    font-family: Inter, sans-serif;
+    background: radial-gradient(circle at top, #0b0c10, #000);
+    color: #e5e5e5;
+    display: flex;
+}
+
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background: rgba(20,20,25,0.6);
+    backdrop-filter: blur(14px);
+    padding: 20px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 800;
+    color: #8D99AE;
+    margin-bottom: 30px;
+}
+
+.main {
+    flex: 1;
+    padding: 30px;
+}
+
+.vault {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(141,153,174,0.2);
+    border-radius: 18px;
+    padding: 20px;
+}
+
+textarea, input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(141,153,174,0.2);
+    background: rgba(255,255,255,0.02);
+    color: white;
+}
+
+button {
+    margin-top: 10px;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #2B2D42;
+    color: white;
+}
+
+button:hover {
+    background: #8D99AE;
+    color: black;
+}
+
+.box {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    white-space: pre-wrap;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <div class="logo">🔐 VaultOS</div>
+</div>
+
+<div class="main">
+
+<div class="vault">
+
+<h2>Digital Vault Dashboard</h2>
+
+<div>📝 Notes: <b id="count">0</b></div>
+
+<textarea id="note" placeholder="Write secure note..."></textarea>
+<button onclick="saveNote()">Encrypt & Store</button>
+
+<div class="box" id="saveOut"></div>
+
+<h3>🔓 Load</h3>
+<input id="hash" placeholder="Root Hash" />
+<button onclick="loadNote()">Decrypt</button>
+<div class="box" id="loadOut"></div>
+
+<h3>🔍 Search</h3>
+<input id="search" />
+<button onclick="searchVault()">Search</button>
+<div class="box" id="searchOut"></div>
+
+<h3>💬 Chat</h3>
+<input id="chat" />
+<button onclick="chatVault()">Ask</button>
+<div class="box" id="chatOut"></div>
+
+</div>
+
+</div>
+
+<script>
+
+/* SAVE */
+async function saveNote() {
+    const text = document.getElementById("note").value;
+
+    const res = await fetch("/save", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ text })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("saveOut").innerText =
+        data.success ? data.rootHash : data.error;
+
+    loadStats();
+}
+
+/* LOAD */
+async function loadNote() {
+    const rootHash = document.getElementById("hash").value;
+
+    const res = await fetch("/load", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ rootHash })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("loadOut").innerText =
+        data.success ? JSON.stringify(data, null, 2) : data.error;
+}
+
+/* SEARCH */
+async function searchVault() {
+    const query = document.getElementById("search").value;
+
+    const res = await fetch("/search", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ query })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("searchOut").innerText =
+        JSON.stringify(data.results, null, 2);
+}
+
+/* CHAT */
+async function chatVault() {
+    const question = document.getElementById("chat").value;
+
+    const res = await fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ question })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("chatOut").innerText = data.answer;
+}
+
+/* STATS */
+async function loadStats() {
+    const res = await fetch("/stats");
+    const data = await res.json();
+
+    document.getElementById("count").innerText = data.totalNotes;
+}
+
+setInterval(loadStats, 2000);
+loadStats();
+
+</script>
+
+</body>
+</html>
