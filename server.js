@@ -1,12 +1,11 @@
+import "dotenv/config";
+
 import express from "express";
 import fs from "fs";
 import bodyParser from "body-parser";
-import dotenv from "dotenv";
 import crypto from "crypto";
 import { Indexer, ZgFile } from "@0gfoundation/0g-storage-ts-sdk";
 import { ethers } from "ethers";
-
-dotenv.config();
 
 const app = express();
 app.use(express.static("public"));
@@ -18,7 +17,7 @@ const indRpc = "https://indexer-storage-testnet-turbo.0g.ai";
 let vault = [];
 
 /* =========================
-   ENCRYPTION (DEMO SAFE)
+   ENCRYPTION (SAFE DEMO)
 ========================= */
 
 function encrypt(text) {
@@ -46,7 +45,7 @@ function decrypt(text) {
 }
 
 /* =========================
-   AI SUMMARY (DEMO STYLE)
+   AI SUMMARY (DEMO)
 ========================= */
 
 function aiSummary(text) {
@@ -54,11 +53,10 @@ function aiSummary(text) {
 }
 
 /* =========================
-   SAVE (DEMO FLOW OPTIMIZED)
+   SAVE TO 0G STORAGE
 ========================= */
 
 async function saveTo0G(text) {
-
     const encrypted = encrypt(text);
     const summary = aiSummary(text);
 
@@ -94,7 +92,7 @@ async function saveTo0G(text) {
         txHash: tx?.txHash || ""
     };
 
-    vault.unshift(entry); // newest first
+    vault.unshift(entry);
 
     return {
         rootHash: entry.rootHash,
@@ -104,7 +102,7 @@ async function saveTo0G(text) {
 }
 
 /* =========================
-   SAVE API
+   API: SAVE
 ========================= */
 
 app.post("/save", async (req, res) => {
@@ -128,7 +126,7 @@ app.post("/save", async (req, res) => {
 });
 
 /* =========================
-   LOAD API (DEMO CLEAN OUTPUT)
+   API: LOAD
 ========================= */
 
 app.post("/load", async (req, res) => {
@@ -161,7 +159,7 @@ app.post("/load", async (req, res) => {
 });
 
 /* =========================
-   SEARCH (FAST DEMO MODE)
+   SEARCH
 ========================= */
 
 app.post("/search", (req, res) => {
@@ -179,13 +177,12 @@ app.post("/search", (req, res) => {
 
     res.json({
         success: true,
-        count: results.length,
         results
     });
 });
 
 /* =========================
-   CHAT (WOW DEMO RESPONSE)
+   CHAT
 ========================= */
 
 app.post("/chat", (req, res) => {
@@ -194,30 +191,25 @@ app.post("/chat", (req, res) => {
     if (vault.length === 0) {
         return res.json({
             success: true,
-            answer: "Your vault is empty. Add a note to start intelligence generation."
+            answer: "Vault is empty. Add notes to generate intelligence."
         });
     }
 
-    const context = vault
-        .slice(0, 5)
-        .map(v => v.summary)
-        .join("\n");
+    const context = vault.slice(0, 5).map(v => v.summary).join("\n");
 
     res.json({
         success: true,
         answer:
-`🧠 Vault Intelligence Response:
-
-Based on your stored knowledge:
+`🧠 Vault Intelligence:
 
 ${context}
 
-💡 Insight: Your vault is building a personal knowledge graph.`
+💡 Your encrypted memory system is active.`
     });
 });
 
 /* =========================
-   HISTORY (DEMO ORDER)
+   HISTORY
 ========================= */
 
 app.get("/history", (req, res) => {
@@ -225,7 +217,7 @@ app.get("/history", (req, res) => {
 });
 
 /* =========================
-   STATS (LIVE DEMO KPI)
+   STATS
 ========================= */
 
 app.get("/stats", (req, res) => {
@@ -241,5 +233,5 @@ app.get("/stats", (req, res) => {
 ========================= */
 
 app.listen(3000, () => {
-    console.log("🚀 VaultOS DEMO READY → http://localhost:3000");
+    console.log("🚀 VaultOS running → http://localhost:3000");
 });
