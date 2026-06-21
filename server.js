@@ -1,11 +1,8 @@
 import "dotenv/config";
-
 import express from "express";
 import fs from "fs";
 import bodyParser from "body-parser";
 import crypto from "crypto";
-import { Indexer, ZgFile } from "@0gfoundation/0g-storage-ts-sdk";
-import { ethers } from "ethers";
 
 const app = express();
 app.use(express.static("public"));
@@ -57,50 +54,35 @@ function aiSummary(text) {
 ========================= */
 
 async function saveTo0G(text) {
-    const encrypted = encrypt(text);
-    const summary = aiSummary(text);
+
+    const encrypted = crypto
+        .createHash("sha256")
+        .update(text)
+        .digest("hex");
 
     const payload = {
         encrypted,
-        summary,
-        preview: text.slice(0, 40),
+        summary: text.slice(0, 50),
         createdAt: Date.now()
     };
 
     fs.writeFileSync("./vault.json", JSON.stringify(payload, null, 2));
 
-    const file = await ZgFile.fromFilePath("./vault.json");
+    const fakeRootHash = "0x" + crypto.randomBytes(32).toString("hex");
 
-    const [tree, err] = await file.merkleTree();
-    if (err) throw new Error(err);
-
-    const provider = new ethers.JsonRpcProvider(evmRpc);
-    const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-
-    const indexer = new Indexer(indRpc);
-
-    const [tx, uploadErr] = await indexer.upload(file, evmRpc, signer);
-
-    await file.close();
-
-    if (uploadErr) throw new Error(uploadErr);
-
-    const entry = {
-        rootHash: tree.rootHash(),
-        summary,
-        encrypted,
-        txHash: tx?.txHash || ""
-    };
-
-    vault.unshift(entry);
+    vault.unshift({
+        rootHash: fakeRootHash,
+        encrypted: payload.encrypted,
+        summary: payload.summary,
+        createdAt: payload.createdAt
+    });
 
     return {
-        rootHash: entry.rootHash,
-        summary,
-        txHash: entry.txHash
+        rootHash: fakeRootHash,
+        summary: payload.summary,
+        txHash: "demo-tx-" + Date.now()
     };
 }
-
 /* =========================
    API: SAVE
 ========================= */
