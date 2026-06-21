@@ -17,28 +17,43 @@ class Request(BaseModel):
 # ---------- AI Logic ----------
 def generate_idea(topic: str):
     return {
-        "startup_idea": f"AI-powered education assistant specialized in {topic}",
+        "startup_idea": f"AI-powered platform for {topic}",
 
         "problem": (
-            f"Students and beginners struggle to understand real-world applications of {topic} "
-            "and lack guided project experience."
+            f"Users struggle with real-world understanding and practical application of {topic}."
         ),
 
         "solution": (
-            f"An intelligent AI mentor that teaches {topic} through hands-on projects, "
-            "step-by-step guidance, and real-world simulations."
+            f"An AI mentor that teaches {topic} through guided learning, projects, and real-world simulations."
         ),
 
-        "target_users": "Students, beginners, self-learners, and bootcamp users",
+        "pitch": {
+            "one_liner": f"The Uber for learning {topic} using AI-guided hands-on projects.",
 
-        "monetization": "Freemium model + paid campus subscriptions + premium project packs",
+            "problem_statement": (
+                f"Millions of learners lack structured, practical exposure to {topic}, "
+                "leading to poor job readiness."
+            ),
 
-        "mvp_plan": [
-            "AI chat tutor for learning concepts",
-            "Project-based learning modules",
-            "Step-by-step guided builder",
-            "Cloud project workspace"
-        ]
+            "solution_statement": (
+                f"We build an AI-powered mentor that turns {topic} into interactive, project-based learning."
+            ),
+
+            "market": "Education technology + AI learning tools (multi-billion dollar market)",
+
+            "business_model": "Freemium + premium learning paths + institutional licensing",
+
+            "why_now": "AI adoption in education is accelerating rapidly",
+
+            "mvp": [
+                "AI chat tutor",
+                "Project-based learning system",
+                "Personalized roadmap generator",
+                "Skill assessment engine"
+            ]
+        },
+
+        "monetization": "Freemium + campus subscriptions + enterprise licensing"
     }
 # ---------- API Endpoint ----------
 @app.post("/generate")
